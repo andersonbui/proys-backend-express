@@ -3,7 +3,7 @@ var router = express.Router();
 
 router.get("/",(req,res,next)=>{
     //let nombre = req.query.nombre;
-    req.db.query("SELECT * FROM usuario",(err,results)=>{
+    req.db.query("SELECT * FROM profesor",(err,results)=>{
         if(err){
             res.status(500).send({msg:"Error en consulta"});
         }else{
