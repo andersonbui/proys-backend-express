@@ -35,7 +35,7 @@ router.post("/select", (req, res, next) => {
 
     let consulta = "SELECT * FROM " + tabla + " ";
 
-    if (body.nombreatributos != null && body.atributos != null && body.atributos[body.nombreatributos] != null) {
+    if (body.nombreatributos != null && body.atributos != null && body.atributos[body.nombreatributos[0]] != null) {
         let colname = body.nombreatributos[0];
         let valor = body.atributos[colname];
         consulta += " WHERE " + colname + " = '" + valor + "'";
@@ -71,9 +71,15 @@ router.post("/delete", (req, res, next) => {
     let body = req.body;
     let tabla = body.nombretabla;
 
-    let consulta = "DELETE FROM " + tabla + " WHERE  false";
+    let consulta = "DELETE FROM " + tabla + " ";
 
-    if (body.nombreatributos != null && body.atributos != null ) {
+     if (body.nombreatributos != null && body.atributos != null && body.atributos[body.nombreatributos] != null) {
+        let colname = body.nombreatributos[0];
+        let valor = body.atributos[colname];
+        consulta += " WHERE " + colname + " = '" + valor + "'";
+    }
+   
+   /* if (body.nombreatributos != null && body.atributos != null ) {
         let where = "";
         let listaatribs = [];
         for (i = 0; i < nombreatributos.length; i++) {
@@ -83,17 +89,17 @@ router.post("/delete", (req, res, next) => {
         }
         //let valor = body.atributos[colname];
         consulta = "DELETE FROM " + tabla + " WHERE " + where;
-    }
+    }*/
 
     console.log("consulta delete: " + consulta);
     req.db.query(consulta, (err, results) => {
         if (err) {
-            res.status(500).send({ msg: "Error en consulta r" });
+            res.status(500).send({ msg: "No se realizao el delete:", err});
         } else {
-            if (results.length > 0) {
+            if (results.affectedRows > 0) {
                 res.send(results);
             } else {
-                res.status(404).send({ msg: " no encontrado" });
+                res.status(404).send({ msg: " no encontrado",results});
             }
         }
     });
