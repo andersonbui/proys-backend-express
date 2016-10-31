@@ -2,43 +2,33 @@ var express = require("express");
 var router = express.Router();
 var where = '-';
 
-//var consulta = "SHOW KEYS FROM " + tabla + " WHERE key_name = 'PRIMARY'";
-
-//router.get("/unid/:tabla/:colname-:valor", (req, res, next) => {
-router.get("/unid/:tabla", (req, res, next) => {
-    let tabla = req.params.tabla;
-    let colname = req.query.colname;
-    let valor = req.query.valor;
-    let consulta = "SELECT * FROM " + tabla + " ";
-
-    if (!((typeof (req.query.valor) == "undefined") || (typeof (req.query.colname) == "undefined"))) {
-        consulta += " WHERE " + colname + " = " + valor;
+/**
+ * ejemplo de consulta a: http://127.0.0.1:8080/general/select
+ * {
+	    "nombretabla":"profesor",
+	    "nombreatributos":["idusuario","oficina"],
+	    "atributos":{
+		    "idusuario": "1",
+		    "oficina": "321"
+	    }
     }
-
-    req.db.query(consulta, (err, results) => {
-        if (err) {
-            res.status(500).send({ msg: "Error en consulta r" });
-        } else {
-            if (results.length > 0) {
-                res.send(results);
-            } else {
-                res.status(404).send({ msg: table + " no encontrado" });
-            }
-        }
-    });
-});
-
-//router.get("/unid/:tabla/:colname-:valor", (req, res, next) => {
+ */
 router.post("/select", (req, res, next) => {
     let body = req.body;
     let tabla = body.nombretabla;
 
-    let consulta = "SELECT * FROM " + tabla + " ";
+    var consulta = "SELECT * FROM " + tabla + " ";
 
-    if (body.nombreatributos != null && body.atributos != null && body.atributos[body.nombreatributos[0]] != null) {
-        let colname = body.nombreatributos[0];
-        let valor = body.atributos[colname];
-        consulta += " WHERE " + colname + " = '" + valor + "'";
+    if (body.nombreatributos != null && body.atributos != null) {
+        let where = "";
+        let listaatribs = [];
+        //arma la condicon where
+        for (i = 0; i < body.nombreatributos.length; i++) {
+            let colname = body.nombreatributos[i];
+            where += (i == 0 ? " " : " and ") + body.nombreatributos[i] + " = '" + body.atributos[colname] + "'";
+        }
+        //une la condicion where al resto de la sentencia delete
+        consulta = "SELECT * FROM " + tabla + " WHERE " + where;
     }
 
     req.db.query(consulta, (err, results) => {
@@ -54,6 +44,11 @@ router.post("/select", (req, res, next) => {
     });
 });
 
+/**
+ * ejemplo insertar a:  http://localhost:8080/general/insert/profesor
+ * 
+ * cuerpo: {"nombre":"aaaaa","telefono":"","email":"","oficina":"123"}
+ */
 router.post("/insert/:tabla", (req, res, next) => {
     let tabla = req.params.tabla;
     let body = req.body;
@@ -66,6 +61,7 @@ router.post("/insert/:tabla", (req, res, next) => {
     });
 
 });
+
 /**
  * ejemplo consulta al: http://localhost:8080/general/delete
  * body:
@@ -81,15 +77,6 @@ router.post("/delete", (req, res, next) => {
     let body = req.body;
     let tabla = body.nombretabla;
 
-    /* para solo un campo 
-
-    let consulta = "DELETE FROM " + tabla + " ";
- 
-      if (body.nombreatributos != null && body.atributos != null && body.atributos[body.nombreatributos] != null) {
-         let colname = body.nombreatributos[0];
-         let valor = body.atributos[colname];
-         consulta += " WHERE " + colname + " = '" + valor + "'";
-     }*/
     var consulta = "DELETE FROM " + tabla + " where false ";
 
     if (body.nombreatributos != null && body.atributos != null) {
@@ -160,7 +147,7 @@ router.post("/update", (req, res, next) => {
     //res.send({ msg: "No se realizao el update:"+consulta });
     console.log("consulta delete: " + consulta);
     //ejecuta sentencia
-    req.db.query(consulta,[cuerpo], (err, results) => {
+    req.db.query(consulta, [cuerpo], (err, results) => {
         if (err) {
             res.status(500).send({ msg: "No se realizao el update:", err });
         } else {
