@@ -71,35 +71,38 @@ router.post("/delete", (req, res, next) => {
     let body = req.body;
     let tabla = body.nombretabla;
 
-    let consulta = "DELETE FROM " + tabla + " ";
+    /* let consulta = "DELETE FROM " + tabla + " ";
+ 
+      if (body.nombreatributos != null && body.atributos != null && body.atributos[body.nombreatributos] != null) {
+         let colname = body.nombreatributos[0];
+         let valor = body.atributos[colname];
+         consulta += " WHERE " + colname + " = '" + valor + "'";
+     }*/
+    var consulta = "DELETE FROM " + tabla + " where false ";
 
-     if (body.nombreatributos != null && body.atributos != null && body.atributos[body.nombreatributos] != null) {
-        let colname = body.nombreatributos[0];
-        let valor = body.atributos[colname];
-        consulta += " WHERE " + colname + " = '" + valor + "'";
-    }
-   
-   /* if (body.nombreatributos != null && body.atributos != null ) {
+    if (body.nombreatributos != null && body.atributos != null) {
         let where = "";
         let listaatribs = [];
-        for (i = 0; i < nombreatributos.length; i++) {
+        //arma la condicon where
+        for (i = 0; i < body.nombreatributos.length; i++) {
             let colname = body.nombreatributos[i];
-            where += (i == 0 ? " " : " & ") + body.nombreatributos[i] + " = " + body.atributos[colname];
-            //listaatribs.push(body.atributos[colname]);
-        }
-        //let valor = body.atributos[colname];
-        consulta = "DELETE FROM " + tabla + " WHERE " + where;
-    }*/
+            where += (i == 0 ? " " : " and ") + body.nombreatributos[i] + " = '" + body.atributos[colname] + "'";
 
+        }
+        //une la condicion where al resto de la sentencia delete
+        consulta = "DELETE FROM " + tabla + " WHERE " + where;
+    }
+   
     console.log("consulta delete: " + consulta);
+    //ejecuta sentencia
     req.db.query(consulta, (err, results) => {
         if (err) {
-            res.status(500).send({ msg: "No se realizao el delete:", err});
+            res.status(500).send({ msg: "No se realizao el delete:", err });
         } else {
             if (results.affectedRows > 0) {
                 res.send(results);
             } else {
-                res.status(404).send({ msg: " no encontrado",results});
+                res.status(404).send({ msg: " no encontrado", results });
             }
         }
     });
